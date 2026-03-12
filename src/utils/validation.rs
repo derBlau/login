@@ -65,7 +65,7 @@ impl Validator {
     fn username_contains_only_allowed_chars(username: &str) -> Result<(), ValidationError<'_>> {
         if username
             .chars()
-            .all(|c| c.is_alphanumeric() || matches!(c, '!' | '#' | '@'))
+            .all(|c| c.is_alphanumeric() || matches!(c, '_'))
         {
             Ok(())
         } else {
