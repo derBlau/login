@@ -19,7 +19,7 @@ impl Validator {
     ///   if the username passes the check
     /// * [`ValidationError`](crate::errors::validation_errors::ValidationError)
     ///   if the username is too long and/or contains forbidden chars
-    pub fn validate_username(username: &str) -> Result<(), ValidationError> {
+    pub fn validate_username(username: &str) -> Result<(), ValidationError<'_>> {
         Self::check_length_of_username(username.len())?;
         Self::username_contains_only_allowed_chars(username)?;
 
@@ -40,11 +40,11 @@ impl Validator {
     ///   if the username is less than 6 chars long
     /// * [`ValidationError::TooLong`](crate::errors:validation_errors::ValidationError::TooLong)
     ///   if the username is longer than 14 chars
-    fn check_length_of_username(username_size: usize) -> Result<(), ValidationError> {
+    fn check_length_of_username(username_size: usize) -> Result<(), ValidationError<'static>> {
         if username_size < 6 {
-            Err(ValidationError::TooShort)
+            Err(ValidationError::TooShort { field: "username" })
         } else if username_size > 14 {
-            Err(ValidationError::TooLong)
+            Err(ValidationError::TooLong { field: "username" })
         } else {
             Ok(())
         }
@@ -62,14 +62,14 @@ impl Validator {
     /// *
     /// * [`ValidationError::ForbiddenChar`](crate::errors:validation_errors:ValidationError::ForbiddenChar)
     ///   if the username contains forbidden characters
-    fn username_contains_only_allowed_chars(username: &str) -> Result<(), ValidationError> {
+    fn username_contains_only_allowed_chars(username: &str) -> Result<(), ValidationError<'_>> {
         if username
             .chars()
             .all(|c| c.is_alphanumeric() || matches!(c, '!' | '#' | '@'))
         {
             Ok(())
         } else {
-            Err(ValidationError::ForbiddenChar)
+            Err(ValidationError::ForbiddenChar { field: "username" })
         }
     }
 }
@@ -84,7 +84,10 @@ mod tests {
         let res = Validator::validate_username(username);
 
         assert!(res.is_err());
-        assert_eq!(res.unwrap_err(), ValidationError::TooShort);
+        assert_eq!(
+            res.unwrap_err(),
+            ValidationError::TooShort { field: "username" }
+        );
     }
 
     #[test]
@@ -93,7 +96,10 @@ mod tests {
         let res = Validator::validate_username(username);
 
         assert!(res.is_err());
-        assert_eq!(res.unwrap_err(), ValidationError::TooLong);
+        assert_eq!(
+            res.unwrap_err(),
+            ValidationError::TooLong { field: "username" }
+        );
     }
 
     #[test]
@@ -102,7 +108,10 @@ mod tests {
         let res = Validator::validate_username(username);
 
         assert!(res.is_err());
-        assert_eq!(res.unwrap_err(), ValidationError::ForbiddenChar);
+        assert_eq!(
+            res.unwrap_err(),
+            ValidationError::ForbiddenChar { field: "username" }
+        );
     }
 
     #[test]
